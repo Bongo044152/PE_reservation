@@ -27,23 +27,23 @@ def run_reservation(target_date):
             driver.get("https://sys.ndhu.edu.tw/gc/sportcenter/SportsFields/Query.aspx")
             time.sleep(2)
             if target_date in driver.page_source:
-                send_to_discord(f"ℹ️ **週日自動跳過**：偵測到 `{target_date}` 已經有預約紀錄，本週末任務已完成。")
+                send_to_discord(account.discord_webhook, f"ℹ️ **週日自動跳過**：偵測到 `{target_date}` 已經有預約紀錄，本週末任務已完成。")
                 driver.quit()
                 return
 
         # 3. 執行填表 (傳入計算好的 12 天後日期)
         fill_form(driver, account.firsttime, account.lasttime, account.totalhours, target_date, account.discord_webhook)
-        send_to_discord(f"✅ **預約程序執行完畢**\n目標預約日期：`{target_date}`\n請至系統確認是否成功。",account.discord_webhook)
+        send_to_discord(account.discord_webhook, f"✅ **預約程序執行完畢**\n目標預約日期：`{target_date}`\n請至系統確認是否成功。")
 
     except Exception as e:
         error_msg = traceback.format_exc()
-        send_to_discord(f"❌ **預約執行失敗**\n日期：`{target_date}`\n原因：`{str(e)}`\n詳細錯誤：\n```{error_msg}```",account.discord_webhook)
+        send_to_discord(account.discord_webhook, f"❌ **預約執行失敗**\n日期：`{target_date}`\n原因：`{str(e)}`\n詳細錯誤：\n```{error_msg}```")
     finally:
         driver.quit()
 
 # --- 主掛機迴圈 ---
 startup_msg = "🤖 **預約機器人已啟動**\n監控中，將於每週六、日 00:00 自動執行預約。"
-send_to_discord(startup_msg,account.discord_webhook)
+send_to_discord(account.discord_webhook, startup_msg)
 
 while True:
     # 1. 取得台灣目前的精準時間
@@ -60,12 +60,12 @@ while True:
             f"⏰ **時間到！今日日期：{now.strftime('%Y/%m/%d')}**\n"
             f"🎯 預設預約目標（12天後）：`{target_date_str}`"
         )
-        send_to_discord(status_report,account.discord_webhook)
+        send_to_discord(account.discord_webhook, status_report)
 
         # 3. 判斷今天是不是週六(5)或週日(6)
         if now.weekday() in [5, 6]:
             trigger_msg = f"🚀 **週末觸發預約流程**\n正在嘗試搶購 `{target_date_str}` 的場地..."
-            send_to_discord(trigger_msg,account.discord_webhook)
+            send_to_discord(account.discord_webhook,trigger_msg)
             run_reservation(target_date_str)
 
         # 避免在 00:00 這一分鐘內重複跑，睡 61 秒
