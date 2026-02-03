@@ -1,16 +1,32 @@
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver.common.by import By
-from robot import send_to_discord
 import time
 
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.by import By
+from selenium import webdriver
 
-def fill_form(driver, firsttime, lasttime, totalhours, target_date, webhook_url):
+from modules.discord import send_to_discord
+from modules.captcha import solve_captcha
+
+# logger setup
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def fill_form(
+    driver: webdriver.Chrome,
+    firsttime: int,
+    lasttime: int,
+    totalhours: int,
+    target_date: str,
+):
     first_select = Select(driver.find_element(By.ID, "MainContent_drpkind"))
     first_select.select_by_visible_text("體育館")
     time.sleep(10)
 
     all_results = []
 
+    # TODO: 場地名稱不足
     venues = [
         "XGMB1壽館場B-羽1",
         "XGMB2壽館場B-羽2",
@@ -18,8 +34,8 @@ def fill_form(driver, firsttime, lasttime, totalhours, target_date, webhook_url)
         "XGMB4壽館場B-羽4",
     ]
 
-    for v_name in venues:
-        res = collect_time(driver, v_name, target_date)
+    for venue in venues:
+        res = collect_time(driver, venue, target_date)
         all_results.append(res)
         time.sleep(10)
 
@@ -27,13 +43,15 @@ def fill_form(driver, firsttime, lasttime, totalhours, target_date, webhook_url)
     final_plan = find_best_combination(venue_dict, firsttime, lasttime, totalhours)
     if final_plan:
         for i in final_plan:
-            auto_click_plan(driver, final_plan, target_date, webhook_url)
+            auto_click_plan(driver, final_plan, target_date)
     """ to do """
     """剩下通過驗證碼和送出表單的部分"""
     time.sleep(10)
 
 
-def collect_time(driver, place_name, target_date):
+def collect_time(
+    driver: webdriver.Chrome, place_name: str, target_date: str
+) -> list[str]:
     select = Select(driver.find_element(By.ID, "MainContent_DropDownList1"))
     select.select_by_visible_text(place_name)
     time.sleep(10)
@@ -46,7 +64,7 @@ def collect_time(driver, place_name, target_date):
     return results
 
 
-def get_available_slots(driver, target_date):
+def get_available_slots(driver, target_date) -> list[str]:
     # 1. 先抓到日期標題的元素，用它當作「準心」
     date_header = driver.find_element(
         By.XPATH, f"//*[contains(text(), '{target_date}')]"
@@ -111,7 +129,7 @@ def find_best_combination(all_venues, my_start, my_end, target_duration):
     return None
 
 
-def auto_click_plan(driver, plan, target_date, webhook_url):
+def auto_click_plan(driver, plan, target_date):
     try:
         for start, end, venue_name in plan:
             # 1. 切換場地並查詢
@@ -141,7 +159,7 @@ def auto_click_plan(driver, plan, target_date, webhook_url):
                 if abs(btn_center - target_center) < 10:
                     btn.click()
                     success_msg = f"✅ 申請成功點擊 {venue_name} 的 {target_time}"
-                    send_to_discord(success_msg, webhook_url)
+                    send_to_discord(success_msg)
                     found = True
                     break
 
@@ -155,5 +173,5 @@ def auto_click_plan(driver, plan, target_date, webhook_url):
     except Exception as e:
         # 這裡會捕捉錯誤並發送，然後再次 raise 讓 main.py 也能接收到
         err_msg = f"❌ **自動點擊階段失敗**\n時段：{target_date}\n原因：{str(e)}"
-        send_to_discord(err_msg, webhook_url)
+        send_to_discord(err_msg)
         raise e
