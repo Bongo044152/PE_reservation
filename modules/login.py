@@ -3,7 +3,7 @@ from selenium import webdriver
 import time
 
 
-def login(driver: webdriver.Chrome, username: str, password: str) -> None:
+def login(driver: webdriver.Chrome, username: str, password: str, sleeping_time: int,) -> None:
     """
     網站登入流程，需要提供學號與密碼，才可以正確運作。
 
@@ -22,7 +22,7 @@ def login(driver: webdriver.Chrome, username: str, password: str) -> None:
 
     # 找登入按鈕
     driver.find_element(By.ID, "MainContent_Button1").click()
-    time.sleep(3)
+    time.sleep(sleeping_time)
 
     # 開啟申請表單
     driver.find_element(By.ID, "MainContent_Button2").click()

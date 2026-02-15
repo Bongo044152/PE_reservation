@@ -19,52 +19,58 @@ def fill_form(
     lasttime: int,
     totalhours: int,
     target_date: str,
+    sleeping_time: int,
 ):
     first_select = Select(driver.find_element(By.ID, "MainContent_drpkind"))
     first_select.select_by_visible_text("體育館")
-    time.sleep(10)
+    time.sleep(sleeping_time)
 
     all_results = []
 
-    # TODO: 場地名稱不足
     venues = [
         "XGMB1壽館場B-羽1",
         "XGMB2壽館場B-羽2",
         "XGMB3壽館場B-羽3",
         "XGMB4壽館場B-羽4",
+        "XGMC1壽館場C-排1",
+        "XGMC2壽館場C-排2",
+        "XGMC3壽館場C-排3",
+        "XGMC4壽館場C-排4",
     ]
 
     for venue in venues:
         res = collect_time(driver, venue, target_date)
         all_results.append(res)
-        time.sleep(10)
+        time.sleep(sleeping_time)
 
     venue_dict = {venues[i]: all_results[i] for i in range(len(venues))}
     final_plan = find_best_combination(venue_dict, firsttime, lasttime, totalhours)
     if final_plan:
         for i in final_plan:
-            auto_click_plan(driver, final_plan, target_date)
+            auto_click_plan(driver, final_plan, target_date, sleeping_time)
     """ to do """
     """剩下通過驗證碼和送出表單的部分"""
-    time.sleep(10)
+    time.sleep(sleeping_time)
 
 
 def collect_time(
-    driver: webdriver.Chrome, place_name: str, target_date: str
+    driver: webdriver.Chrome, place_name: str, target_date: str, sleeping_time: int
 ) -> list[str]:
     select = Select(driver.find_element(By.ID, "MainContent_DropDownList1"))
     select.select_by_visible_text(place_name)
-    time.sleep(10)
+    time.sleep(sleeping_time)
 
     click_button = driver.find_element(By.ID, "MainContent_Button1")
     click_button.click()
-    time.sleep(10)
+    time.sleep(sleeping_time)
 
     results = get_available_slots(driver, target_date)
     return results
 
 
-def get_available_slots(driver, target_date) -> list[str]:
+def get_available_slots(
+    driver: webdriver.Chrome, target_date: str
+) -> list[str]:
     # 1. 先抓到日期標題的元素，用它當作「準心」
     date_header = driver.find_element(
         By.XPATH, f"//*[contains(text(), '{target_date}')]"
@@ -129,15 +135,15 @@ def find_best_combination(all_venues, my_start, my_end, target_duration):
     return None
 
 
-def auto_click_plan(driver, plan, target_date):
+def auto_click_plan(driver, plan, target_date, sleeping_time):
     try:
         for start, end, venue_name in plan:
             # 1. 切換場地並查詢
             select = Select(driver.find_element(By.ID, "MainContent_DropDownList1"))
             select.select_by_visible_text(venue_name)
-            time.sleep(2)
+            time.sleep(sleeping_time)
             driver.find_element(By.ID, "MainContent_Button1").click()
-            time.sleep(3)
+            time.sleep(sleeping_time)
 
             # 2. 定位日期 X 座標 (確保點對天)
             date_header = driver.find_element(

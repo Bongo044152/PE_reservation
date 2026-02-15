@@ -33,9 +33,9 @@ def run_reservation(target_date):
     try:
         # 1. 前往登入
         driver.get(WEBSITE_URL)
-        time.sleep(3)
-        login(driver, user_config.account, user_config.password)
-        time.sleep(3)
+        time.sleep(user_config.sleeping_time)
+        login(driver, user_config.account, user_config.password, user_config.sleeping_time)
+        time.sleep(user_config.sleeping_time)
         logger.debug("Login successful.")
 
         # 2. 執行填表 (傳入計算好的 12 天後日期)
@@ -45,6 +45,7 @@ def run_reservation(target_date):
             user_config.lasttime,
             user_config.totalhours,
             target_date,
+            user_config.sleeping_time
         )
         send_to_discord(
             f"✅ **預約程序執行完畢**\n目標預約日期：`{target_date}`\n請至系統確認是否成功。",
@@ -90,10 +91,7 @@ def main():
                 send_to_discord(trigger_msg)
                 run_reservation(target_date_str)
 
-            # 避免在 00:00 這一分鐘內重複跑，睡 61 秒
-            time.sleep(61)
-
-        time.sleep(1800)
+        time.sleep(60)
 
 
 if __name__ == "__main__":
