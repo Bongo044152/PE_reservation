@@ -5,7 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium import webdriver
 
 from modules.discord import send_to_discord
-from modules.captcha import solve_captcha
+from modules.captcha import break_captcha
 
 # logger setup
 import logging
@@ -39,7 +39,7 @@ def fill_form(
     ]
 
     for venue in venues:
-        res = collect_time(driver, venue, target_date)
+        res = collect_time(driver, venue, target_date, sleeping_time)
         all_results.append(res)
         time.sleep(sleeping_time)
 
@@ -48,8 +48,9 @@ def fill_form(
     if final_plan:
         for i in final_plan:
             auto_click_plan(driver, final_plan, target_date, sleeping_time)
-    """ to do """
-    """剩下通過驗證碼和送出表單的部分"""
+
+    # TODO: 這裡需要處理驗證碼，並且在點擊後送出表單
+
     time.sleep(sleeping_time)
 
 
@@ -68,9 +69,7 @@ def collect_time(
     return results
 
 
-def get_available_slots(
-    driver: webdriver.Chrome, target_date: str
-) -> list[str]:
+def get_available_slots(driver: webdriver.Chrome, target_date: str) -> list[str]:
     # 1. 先抓到日期標題的元素，用它當作「準心」
     date_header = driver.find_element(
         By.XPATH, f"//*[contains(text(), '{target_date}')]"

@@ -3,7 +3,12 @@ from selenium import webdriver
 import time
 
 
-def login(driver: webdriver.Chrome, username: str, password: str, sleeping_time: int,) -> None:
+def login(
+    driver: webdriver.Chrome,
+    username: str,
+    password: str,
+    sleeping_time: int,
+) -> None:
     """
     網站登入流程，需要提供學號與密碼，才可以正確運作。
 
