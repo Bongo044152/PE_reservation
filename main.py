@@ -77,7 +77,7 @@ def main():
         # 2. 按照使用者設定的時間觸發
         if (
             current_time == user_config.execution_time
-            and now.weekday() in user_config.execution_days
+            and (now.weekday()+5)%7 in user_config.execution_days
         ) or DEBUG_MODE:
             logger.info("Time reached, starting reservation process.")
 
@@ -91,7 +91,11 @@ def main():
             )
             send_to_discord(status_report)
             run_reservation(target_date_str)
-        time.sleep(60)  # TODO: 可以改成更精確的計時器，減少不必要的等待與運行
+        now = get_taiwan_time()
+        user_hour, user_minute = map(int, user_config.execution_time.split(":"))
+        tomorrow = (now + datetime.timedelta(days=1)).replace(hour=user_hour, minute=user_minute, second=0, microsecond=0)
+        seconds_to_midnight = (tomorrow - now).total_seconds()
+        time.sleep(seconds_to_midnight)
 
 
 if __name__ == "__main__":

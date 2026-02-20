@@ -5,8 +5,6 @@
 WEBSITE_URL = "https://sys.ndhu.edu.tw/gc/sportcenter/SportsFields/Login.aspx"
 
 # program settings
-# TODO: 改成預定時間，而非啟動時間
-# * 啟動時間 +2 mod 7 => 預定預約日期
 execution_days = [5, 6]  # Monday == 0 ... Sunday == 6.
 execution_time = "00:00"  # 預約每天程式執行時間 (24小時制，格式: "HH:MM")
 
